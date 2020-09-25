@@ -1,0 +1,107 @@
+web_crawl.py:
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+from urllib2 import urlopen as Urequest
+from bs4 import BeautifulSoup as soup
+import datetime
+import time
+import subprocess
+from os import getcwd
+from os import chdir
+from os import listdir
+
+def web_scrap ():
+    min_url="https://www.newegg.com/global/no-en/p/pl?d=processor"
+    uclient = Urequest(min_url)
+    page_html= uclient.read()
+    uclient.close()
+    page_soup=soup(page_html,"html.parser")
+    div_class=page_soup.findAll("div",{"class":"item-container"})
+    div_processor = div_class
+
+    dtdate2=subprocess.Popen(["date | awk -F' ' '{print $1,$3,$2,$6}'"],shell=True,stdout=subprocess.PIPE)
+    line2 = dtdate2.stdout.readline().rstrip()
+    f =open ('/mnt/d/python/project/'+line2[0:3]+','+line2[3:]+'.txt','w')
+    g =open ('/mnt/d/python/projectlinks/links_plot.txt','w')
+    for container in div_processor:
+      product_link=container.a["href"]
+      webpages = product_link+'\n'
+      for i in webpages:
+         f.write(i)
+         g.write(i)
+    f.close()
+    g.close()
+
+    h = open ('/mnt/d/python/project/'+line2[0:3]+','+line2[3:]+'.txt','r')
+    word='promo@promo.global.newegg.com'
+    word_list=[]
+    word2='https'
+    download_count=[]
+    for i in h :
+      min_text=i
+      if word2 in min_text:
+         download_count.append(word2)
+         uclient = Urequest(min_text)
+         page= uclient.read()
+         uclient.close()
+         page_text=soup(page,"html.parser")
+         for i in page_text.findAll('p'):
+           k = ''.join(i.findAll(text=True))
+           if word in k:
+            word_list.append(word)
+    a=word_list.count(word)
+    b=download_count.count(word2)
+    print "Number of downloaded links are:"+str(b)+". The download path is /mnt/d/python/project/"+line2[0:3]+','+line2[3:    ]+'.txt'
+    print "Given word is: "+word+" The number of counts of given word are: " +str(a)
+    h.close()
+
+command="curl -I 'https://www.newegg.com/global/no-en/p/pl?d=processor' | grep -i last-modified"
+p = subprocess.Popen(command,shell=True,stdout=subprocess.PIPE)
+line = p.stdout.readline().rstrip()
+if not line:                                                                                                                 web_scrap ()
+else:
+    a=line [15:31]
+    chdir ("/mnt/d/python/project/")
+    files=listdir('.')
+    if not files:
+      web_scrap()
+    else:
+      for i in files:
+       if i[0:16] not in a:
+          web_scrap()
+       else:
+          print "last vistited date match"+i[0:16]+" . No Need download"
+
+ping_script.py:
+#! /usr/bin/python
+import subprocess
+import datetime
+
+command = "ping -c 5 www.newegg.com"
+command=command.split()
+process = subprocess.Popen(command,stdout=subprocess.PIPE)
+time=datetime.datetime.now()
+
+while process.poll() is None:
+     line = process.stdout.readline().rstrip()
+     a=line
+     if 'time=' in a:
+      #print a
+      #print a[-9:]
+      f = open ('/mnt/d/python/projectlinks/timedelay.txt','a+')
+      f.write(str(time)+' '+a[-12:]+'\n')
+      f.close()
+import networkx as nx
+import matplotlib.pyplot as plt
+
+
+network_graph.py:
+h = nx.Graph()
+b = 'https://www.newegg.com/global/no-en/p/pl?d=processor'
+h=nx.read_edgelist('D:\python\projectlinks\links.txt',create_using=nx.Graph(),nodetype=str)
+print(nx.info(h))
+nx.draw(h,with_labels=True)
+plt.show()
+
+
